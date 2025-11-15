@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<body>
+<div layout:fragment="content" class="container-fluid">
+
+    <!-- Tiêu đề -->
+    <h3 class="mb-3" th:text="#{device.list}">Danh sách Thiết Bị</h3>
+
+    <!-- 🔍 Form lọc & tìm kiếm -->
+    <form th:action="@{/thiet-bi}" method="get" class="row g-2 mb-3 align-items-end">
+
+        <!-- Từ khóa -->
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Từ khóa</label>
+            <input type="text" name="keyword" th:value="${keyword}" class="form-control"
+                   placeholder="Nhập mã hoặc tên thiết bị...">
+        </div>
+
+        <!-- Tình trạng -->
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Tình trạng</label>
+            <select name="tinhTrang" class="form-select">
+                <option value="">-- Tất cả --</option>
+                <option value="true" th:selected="${tinhTrang} == true">Còn mới</option>
+                <option value="false" th:selected="${tinhTrang} == false">Đã hỏng</option>
+            </select>
+        </div>
+
+        <!-- Trạng thái mượn -->
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Trạng thái</label>
+            <select name="daMuon" class="form-select">
+                <option value="">-- Tất cả --</option>
+                <option value="true" th:selected="${daMuon} == true">Đang mượn</option>
+                <option value="false" th:selected="${daMuon} == false">Chưa mượn</option>
+            </select>
+        </div>
+
+        <!-- Nút lọc -->
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Lọc
+            </button>
+        </div>
+    </form>
+
+    <!-- Bảng danh sách -->
+    <table class="table table-striped table-bordered table-hover align-middle">
+        <thead class="table-dark text-center">
+        <tr>
+            <th>ID</th>
+
+            <!-- 🟦 Sắp xếp theo Mã thiết bị -->
+            <th>
+                <a th:href="@{/thiet-bi(
+                        sortField='maThietBi',
+                        sortDir=${reverseSortDir},
+                        keyword=${keyword},
+                        tinhTrang=${tinhTrang},
+                        daMuon=${daMuon}
+                    )}"
+                   class="text-white text-decoration-none">
+                    <span th:text="#{device.id}">Mã Thiết Bị</span>
+                    <i th:class="${sortDir == 'asc'} ? 'bi bi-arrow-down-short' : 'bi bi-arrow-up-short'"></i>
+                </a>
+            </th>
+
+            <th th:text="#{device.name}">Tên Thiết Bị</th>
+            <th th:text="#{device.desc}">Mô Tả</th>
+            <th th:text="#{device.condition}">Tình Trạng</th>
+            <th th:text="#{device.status}">Trạng Thái</th>
+            <th th:text="#{device.action}">Hành Động</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="tb : ${dsThietBi}" class="text-center">
+            <td th:text="${tb.id}"></td>
+            <td th:text="${tb.maThietBi}"></td>
+            <td th:text="${tb.tenThietBi}"></td>
+            <td th:text="${tb.moTa}"></td>
+
+            <!-- Tình trạng -->
+            <td>
+                <span th:if="${tb.tinhTrang}" class="badge bg-success" th:text="#{device.new}">Còn mới</span>
+                <span th:if="${!tb.tinhTrang}" class="badge bg-danger" th:text="#{device.used}">Đã hỏng</span>
+            </td>
+
+            <!-- Trạng thái -->
+            <td>
+                <span th:if="${tb.daMuon}" class="badge bg-warning text-dark" th:text="#{device.borrowed}">Đang mượn</span>
+                <span th:if="${!tb.daMuon}" class="badge bg-primary" th:text="#{device.available}">Còn hàng</span>
+            </td>
+
+            <!-- Hành động -->
+            <td class="text-nowrap">
+                <a class="btn btn-sm btn-primary me-2"
+                   th:href="@{/thiet-bi/edit/{id}(id=${tb.id})}">
+                    <i class="bi bi-pencil-square me-1"></i>
+                    <span th:text="#{device.edit}">Sửa</span>
+                </a>
+
+                <a class="btn btn-sm btn-danger"
+                   th:href="@{/thiet-bi/delete/{id}(id=${tb.id})}"
+                   th:onclick="|return confirm('#{confirm.delete}')|">
+                    <i class="bi bi-trash me-1"></i>
+                    <span th:text="#{device.delete}">Xóa</span>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="text-center mt-3" th:if="${totalPages > 1}">
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+
+                <!-- Trang trước -->
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/thiet-bi(page=${currentPage - 1}, size=${pageSize}, keyword=${keyword}, tinhTrang=${tinhTrang}, daMuon=${daMuon})}">
+                        ‹‹
+                    </a>
+                </li>
+
+                <!-- Các số trang -->
+                <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    class="page-item"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link"
+                       th:text="${i + 1}"
+                       th:href="@{/thiet-bi(page=${i}, size=${pageSize}, keyword=${keyword}, tinhTrang=${tinhTrang}, daMuon=${daMuon})}"></a>
+                </li>
+
+                <!-- Trang sau -->
+                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/thiet-bi(page=${currentPage + 1}, size=${pageSize}, keyword=${keyword}, tinhTrang=${tinhTrang}, daMuon=${daMuon})}">
+                        ››
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Form thêm thiết bị -->
+    <div class="card shadow mt-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0" th:text="#{device.add.title}">Thêm Thiết Bị</h5>
+        </div>
+
+        <div class="card-body">
+            <form th:action="@{/thiet-bi/add}" method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-bold" th:text="#{device.id}">Mã Thiết Bị</label>
+                    <input type="text" name="maThietBi" class="form-control" placeholder="Nhập mã thiết bị..." required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold" th:text="#{device.name}">Tên Thiết Bị</label>
+                    <input type="text" name="tenThietBi" class="form-control" placeholder="Nhập tên thiết bị..." required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold" th:text="#{device.desc}">Mô Tả</label>
+                    <textarea name="moTa" class="form-control" rows="2" placeholder="Nhập mô tả..."></textarea>
+                </div>
+
+                <input type="hidden" name="tinhTrang" value="true">
+
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    <span th:text="#{device.add.btn}">Thêm mới</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

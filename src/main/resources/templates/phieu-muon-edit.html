@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<body>
+<div layout:fragment="content">
+    <h3 class="mb-4">Cập nhật Phiếu Mượn</h3>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Chỉnh sửa thông tin phiếu mượn</h5>
+        </div>
+
+        <div class="card-body">
+            <form th:action="@{/phieu-muon/update}" method="post" th:object="${pm}">
+                <!-- ID ẩn -->
+                <input type="hidden" th:field="*{id}"/>
+
+                <!-- Mã phiếu -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Mã Phiếu</label>
+                    <input type="text" th:field="*{maPhieu}" class="form-control"/>
+                </div>
+
+                <!-- Ngày mượn -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ngày Mượn</label>
+                    <input type="date" th:field="*{ngayMuon}" class="form-control"/>
+                </div>
+
+                <!-- Trạng thái (dropdown chỉ hiển thị, không cho sửa) -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Trạng Thái</label>
+                    <select class="form-select" onfocus="this.blur()">
+                        <!-- ⚠ Quy ước đúng: true = Chưa Trả, false = Đã Trả -->
+                        <option th:selected="${pm.trangThai}">Chưa Trả</option>
+                        <option th:selected="${!pm.trangThai}">Đã Trả</option>
+                    </select>
+                    <!-- Gửi giá trị thật về server -->
+                    <input type="hidden" name="trangThai" th:value="${pm.trangThai ? 'true' : 'false'}">
+                </div>
+
+                <!-- Thiết bị được mượn -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Thiết Bị Được Mượn</label>
+                    <div class="border rounded p-2" style="max-height:200px; overflow-y:auto;">
+                        <div class="form-check" th:each="tb : ${dsThietBi}">
+                            <input class="form-check-input" type="checkbox" name="thietBiIds"
+                                   th:value="${tb.id}"
+                                   th:checked="${pm.thietBis.contains(tb)}"/>
+                            <label class="form-check-label" th:text="${tb.tenThietBi}"></label>
+                            <span th:text="${tb.daMuon ? ' (Đang mượn)' : ' (Sẵn sàng)'}"
+                                  th:classappend="${tb.daMuon} ? 'text-warning' : 'text-success'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a th:href="@{/phieu-muon}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
